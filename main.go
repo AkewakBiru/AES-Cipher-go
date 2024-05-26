@@ -6,16 +6,16 @@ import (
 )
 
 func main() {
-	cipher, err := f.NewCipherWithMode(f.ECB, []byte("this is a test!!"))
+	cipher, err := f.NewCipherWithMode(f.CTR, []byte("this is "))
 	if err != nil {
 		panic(err)
 	}
 
-	plain := []byte("thisisiasdkfkasf1")
+	plain := []byte(`this is a test`)
 	key := []byte("[hisisatest!)i+-")
 
-	enc := cipher.Encrypt(plain, key)
-	dec := cipher.Decrypt(enc, key)
+	enc, _ := cipher.Encrypt(plain, key)
+	dec, _ := cipher.Decrypt(enc, key)
 
 	fmt.Println(plain)
 	fmt.Println(string(enc))

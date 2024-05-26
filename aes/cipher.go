@@ -4,14 +4,12 @@ import (
 	"aes/utils"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"log"
-	"os"
 )
 
 type Encryption interface {
-	Encrypt([]byte, []byte) []byte
-	Decrypt([]byte, []byte) []byte
+	Encrypt([]byte, []byte) ([]byte, error)
+	Decrypt([]byte, []byte) ([]byte, error)
 }
 
 type Mode int
@@ -47,7 +45,10 @@ func NewCipher() *Cipher {
 }
 
 func NewCipherWithMode(mode Mode, iv []byte) (*Cipher, error) {
-	if mode != ECB && len(iv) != 16 {
+	if mode == CTR && len(iv) != 8 {
+		return nil, errors.New("nonce must be 8 bytes long")
+	}
+	if mode != ECB && mode != CTR && len(iv) != 16 {
 		return nil, errors.New("initialization vector must be 16 bytes long")
 	}
 	return &Cipher{mode: mode, iv: iv}, nil
@@ -58,19 +59,14 @@ func CreateBlocks(input []byte) ([][]uint32, error) {
 	padder := utils.NewPadder(16)
 	padded, err := padder.Pad(input)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	block := make([][]uint32, len(padded)/16)
 
 	j := 0
 	for i := 0; i < len(padded); i += 16 {
-		// block[j] = make([]uint32, 4)
 		block[j] = utils.ByteArrayToUintArray(padded[i : i+16])
-		// block[j][0] = binary.BigEndian.Uint32(padded[i : i+4])
-		// block[j][1] = binary.BigEndian.Uint32(padded[i+4 : i+8])
-		// block[j][2] = binary.BigEndian.Uint32(padded[i+8 : i+12])
-		// block[j][3] = binary.BigEndian.Uint32(padded[i+12:])
 		j++
 	}
 
@@ -82,28 +78,30 @@ func CreateBlocks(input []byte) ([][]uint32, error) {
 	return block, nil
 }
 
-func (cipher *Cipher) Encrypt(input []byte, key []byte) []byte {
+func (cipher *Cipher) Encrypt(input []byte, key []byte) ([]byte, error) {
 	switch cipher.mode {
 	case ECB:
 		return encryptEcb(input, key)
 	case CBC:
 		return encryptCbc(input, key, cipher.iv)
+	case CTR:
+		return encryptCtr(input, key, cipher.iv)
 	default:
-		fmt.Fprint(os.Stderr, "Encryption Mode not found")
+		return nil, errors.New("Encryption Mode not found")
 	}
-	return nil
 }
 
-func (cipher *Cipher) Decrypt(input []byte, key []byte) []byte {
+func (cipher *Cipher) Decrypt(input []byte, key []byte) ([]byte, error) {
 	switch cipher.mode {
 	case ECB:
 		return decryptEcb(input, key)
 	case CBC:
 		return decryptCbc(input, key, cipher.iv)
+	case CTR:
+		return decryptCtr(input, key, cipher.iv)
 	default:
-		fmt.Fprint(os.Stderr, "Decryption Mode not found")
+		return nil, errors.New("decryption Mode not found")
 	}
-	return nil
 }
 
 func Xor(a []uint32, b []uint32) []uint32 {

@@ -2,15 +2,14 @@ package aes
 
 import (
 	"aes/utils"
-	"log"
 )
 
-func encryptCbc(in []byte, key []byte, iv []byte) []byte {
+func encryptCbc(in []byte, key []byte, iv []byte) ([]byte, error) {
 	keys := GenerateKeys(key)
 
 	blocks, err := CreateBlocks(in)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var res = make([][]uint32, len(blocks))
@@ -35,15 +34,15 @@ func encryptCbc(in []byte, key []byte, iv []byte) []byte {
 		res[j] = block
 	}
 
-	return utils.UintToByteArray(res)
+	return utils.UintToByteArray(res), nil
 }
 
-func decryptCbc(input []byte, key []byte, iv []byte) []byte {
+func decryptCbc(input []byte, key []byte, iv []byte) ([]byte, error) {
 	keys := GenerateKeys(key)
 
 	blocks, err := CreateBlocks(input)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var res = make([][]uint32, len(blocks))
@@ -71,7 +70,7 @@ func decryptCbc(input []byte, key []byte, iv []byte) []byte {
 	padder := utils.NewPadder(16)
 	padded, err := padder.Unpad(utils.UintToByteArray(res))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return padded
+	return padded, nil
 }
