@@ -8,8 +8,8 @@ import (
 )
 
 type Encryption interface {
-	Encrypt([]byte, []byte) ([]byte, error)
-	Decrypt([]byte, []byte) ([]byte, error)
+	Encrypt([]byte) ([]byte, error)
+	Decrypt([]byte) ([]byte, error)
 }
 
 type Mode int
@@ -21,6 +21,7 @@ const (
 )
 
 type Cipher struct {
+	key  []byte
 	mode Mode
 	iv   []byte
 }
@@ -40,22 +41,32 @@ var invfactor = [][]byte{
 }
 
 // a new cipher with ECB mode is created when mode isn't specified
-func NewCipher() *Cipher {
-	return &Cipher{mode: ECB}
+func NewCipher(key []byte) (*Cipher, error) {
+	if len(key) != 16 {
+		return nil, errors.New("invalid keysize")
+	}
+
+	return &Cipher{key: key, mode: ECB}, nil
 }
 
-func NewCipherWithMode(mode Mode, iv []byte) (*Cipher, error) {
+func NewCipherWithCodec(key []byte, mode Mode, iv []byte) (*Cipher, error) {
+	if len(key) != 16 {
+		return nil, errors.New("invalid keysize")
+	}
 	if mode == CTR && len(iv) != 8 {
 		return nil, errors.New("nonce must be 8 bytes long")
 	}
 	if mode != ECB && mode != CTR && len(iv) != 16 {
 		return nil, errors.New("initialization vector must be 16 bytes long")
 	}
-	return &Cipher{mode: mode, iv: iv}, nil
+	return &Cipher{key: key, mode: mode, iv: iv}, nil
 }
 
 // Checks if the length is not divisible by 16, and pads the last block
 func CreateBlocks(input []byte) ([][]uint32, error) {
+	if len(input) == 0 {
+		return nil, errors.New("empty plaintext array")
+	}
 	padder := utils.NewPadder(16)
 	padded, err := padder.Pad(input)
 	if err != nil {
@@ -63,7 +74,6 @@ func CreateBlocks(input []byte) ([][]uint32, error) {
 	}
 
 	block := make([][]uint32, len(padded)/16)
-
 	j := 0
 	for i := 0; i < len(padded); i += 16 {
 		block[j] = utils.ByteArrayToUintArray(padded[i : i+16])
@@ -78,27 +88,27 @@ func CreateBlocks(input []byte) ([][]uint32, error) {
 	return block, nil
 }
 
-func (cipher *Cipher) Encrypt(input []byte, key []byte) ([]byte, error) {
+func (cipher *Cipher) Encrypt(input []byte) ([]byte, error) {
 	switch cipher.mode {
 	case ECB:
-		return encryptEcb(input, key)
+		return encryptEcb(input, cipher.key)
 	case CBC:
-		return encryptCbc(input, key, cipher.iv)
+		return encryptCbc(input, cipher.key, cipher.iv)
 	case CTR:
-		return encryptCtr(input, key, cipher.iv)
+		return encryptCtr(input, cipher.key, cipher.iv)
 	default:
 		return nil, errors.New("Encryption Mode not found")
 	}
 }
 
-func (cipher *Cipher) Decrypt(input []byte, key []byte) ([]byte, error) {
+func (cipher *Cipher) Decrypt(input []byte) ([]byte, error) {
 	switch cipher.mode {
 	case ECB:
-		return decryptEcb(input, key)
+		return decryptEcb(input, cipher.key)
 	case CBC:
-		return decryptCbc(input, key, cipher.iv)
+		return decryptCbc(input, cipher.key, cipher.iv)
 	case CTR:
-		return decryptCtr(input, key, cipher.iv)
+		return decryptCtr(input, cipher.key, cipher.iv)
 	default:
 		return nil, errors.New("decryption Mode not found")
 	}
