@@ -1,8 +1,9 @@
 package aes
 
 import (
-	"aes/utils"
 	"testing"
+
+	"github.com/AkewakBiru/AES-Cipher-go/utils"
 
 	"github.com/stretchr/testify/assert"
 )

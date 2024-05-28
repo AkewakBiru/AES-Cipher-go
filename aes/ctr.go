@@ -1,7 +1,7 @@
 package aes
 
 import (
-	"aes/utils"
+	"github.com/AkewakBiru/AES-Cipher-go/utils"
 )
 
 // the (counter+nonce) is iv in this case

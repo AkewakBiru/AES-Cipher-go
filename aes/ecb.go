@@ -1,7 +1,7 @@
 package aes
 
 import (
-	"aes/utils"
+	"github.com/AkewakBiru/AES-Cipher-go/utils"
 )
 
 func encryptEcb(in []byte, key []byte) ([]byte, error) {

@@ -1,8 +1,6 @@
 package aes
 
-import (
-	"aes/utils"
-)
+import "github.com/AkewakBiru/AES-Cipher-go/utils"
 
 func encryptCbc(in []byte, key []byte, iv []byte) ([]byte, error) {
 	keys := GenerateKeys(key)

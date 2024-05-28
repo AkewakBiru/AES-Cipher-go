@@ -1,10 +1,11 @@
 package aes
 
 import (
-	"aes/utils"
 	"encoding/binary"
 	"errors"
 	"log"
+
+	"github.com/AkewakBiru/AES-Cipher-go/utils"
 )
 
 type Encryption interface {
