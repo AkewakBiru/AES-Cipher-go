@@ -29,7 +29,6 @@ func (p *Padder) Pad(input []byte) ([]byte, error) {
 
 	paddingBytes := int(p.blockSize) - (len(input) % int(p.blockSize))
 	padded := bytes.Repeat([]byte{byte(paddingBytes)}, paddingBytes)
-
 	return append(input, padded...), nil
 }
 
@@ -46,7 +45,6 @@ func (p *Padder) Unpad(input []byte) ([]byte, error) {
 	if !ok {
 		return input, nil
 	}
-
 	count := int(p.blockSize) - (padded % int(p.blockSize))
 	return input[:len(input)-count], nil
 }
