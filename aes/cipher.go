@@ -96,7 +96,8 @@ func (cipher *Cipher) Encrypt(input []byte) ([]byte, error) {
 	case CBC:
 		return encryptCbc(input, cipher.key, cipher.iv)
 	case CTR:
-		return encryptCtr(input, cipher.key, cipher.iv)
+		return performCtr(input, cipher.key, cipher.iv, true)
+		// return performCtrBoring(input, cipher.key, cipher.iv, true)
 	default:
 		return nil, errors.New("Encryption Mode not found")
 	}
@@ -109,7 +110,8 @@ func (cipher *Cipher) Decrypt(input []byte) ([]byte, error) {
 	case CBC:
 		return decryptCbc(input, cipher.key, cipher.iv)
 	case CTR:
-		return decryptCtr(input, cipher.key, cipher.iv)
+		return performCtr(input, cipher.key, cipher.iv, false)
+		// return performCtrBoring(input, cipher.key, cipher.iv, false)
 	default:
 		return nil, errors.New("decryption Mode not found")
 	}

@@ -3,8 +3,6 @@ package aes
 import (
 	"testing"
 
-	"github.com/AkewakBiru/AES-Cipher-go/utils"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -56,30 +54,29 @@ func TestCtrBasic(t *testing.T) {
 
 // tests enc/dec of a big content
 func TestCtrBigFile(t *testing.T) {
-	plain, err := utils.ReadFile("../test")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
 	key := []byte("this_isa_testkey")
-	iv := []byte("sampleiv")
-	cipher, err := NewCipherWithCodec(key, CTR, iv)
-	if err != nil {
-		t.Error(err)
-	}
-
-	enc, err := cipher.Encrypt(plain)
+	iv := []byte("thisisasample_iv")
+	cipher, err := NewCipherWithCodec(key, CBC, iv)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	dec, err := cipher.Decrypt(enc)
+	if err := EncryptFile(cipher, "../test", "out"); err != nil {
+		t.Error(err)
+		return
+	}
+	if err := DecryptFile(cipher, "out", "orig"); err != nil {
+		t.Error(err)
+		return
+	}
+	_, same, err := CompareFiles("../test", "orig")
 	if err != nil {
 		t.Error(err)
 		return
 	}
-
-	assert.Equal(t, plain, dec)
+	if !same {
+		t.Fail()
+	}
+	RemoveFiles("out", "orig")
 }

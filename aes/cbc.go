@@ -66,9 +66,9 @@ func decryptCbc(input []byte, key []byte, iv []byte) ([]byte, error) {
 	}
 
 	padder := utils.NewPadder(16)
-	padded, err := padder.Unpad(utils.UintToByteArray(res))
+	unpadded, err := padder.Unpad(utils.UintToByteArray(res))
 	if err != nil {
 		return nil, err
 	}
-	return padded, nil
+	return unpadded, nil
 }

@@ -3,8 +3,6 @@ package aes
 import (
 	"testing"
 
-	"github.com/AkewakBiru/AES-Cipher-go/utils"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -55,30 +53,29 @@ func TestEcbBasic(t *testing.T) {
 
 // tests enc/dec of a big content
 func TestEcbBigFile(t *testing.T) {
-	plain, err := utils.ReadFile("../test")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
 	key := []byte("this_isa_testkey")
-	cipher, err := NewCipher(key)
+	iv := []byte("thisisasample_iv")
+	cipher, err := NewCipherWithCodec(key, CBC, iv)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	enc, err := cipher.Encrypt(plain)
+	if err := EncryptFile(cipher, "../test", "out"); err != nil {
+		t.Error(err)
+		return
+	}
+	if err := DecryptFile(cipher, "out", "orig"); err != nil {
+		t.Error(err)
+		return
+	}
+	_, same, err := CompareFiles("../test", "orig")
 	if err != nil {
 		t.Error(err)
 		return
 	}
-
-	dec, err := cipher.Decrypt(enc)
-	if err != nil {
-		t.Error(err)
-		return
+	if !same {
+		t.Fail()
 	}
-
-	assert.Equal(t, plain, dec)
+	RemoveFiles("out", "orig")
 }

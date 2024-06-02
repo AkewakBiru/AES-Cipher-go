@@ -1,9 +1,7 @@
 package utils
 
 import (
-	"bufio"
 	"encoding/binary"
-	"os"
 )
 
 func New2DSlice(row int, col int) [][]byte {
@@ -33,27 +31,4 @@ func ByteArrayToUintArray(input []byte) []uint32 {
 	res[2] = binary.BigEndian.Uint32(input[8:12])
 	res[3] = binary.BigEndian.Uint32(input[12:])
 	return res
-}
-
-func ReadFile(filename string) ([]byte, error) {
-	file, err := os.OpenFile(filename, os.O_RDONLY, 0644)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	handle := bufio.NewReader(file)
-	var content []byte
-	for {
-		line, err := handle.ReadBytes('\n')
-		if err != nil {
-			if err.Error() == "EOF" {
-				break
-			} else {
-				return nil, err
-			}
-		}
-		content = append(content, line...)
-	}
-	return content, nil
 }
